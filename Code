@@ -1,0 +1,107 @@
+import requests
+import csv
+
+# What is the "base URL" for the API?
+base_url = "https://api.nytimes.com/svc/archive/v1"
+
+# API key here
+myapikey = "kEBQsEG9EGEfQNutEqFNXBSq6m7etGAk"
+
+
+month = input("Enter your birthmonth 1-12: ")
+#month = "8"
+year = input("Enter your birthyear YYYY: ")
+#year = "1981"
+
+# Construct the URL
+month_url = month + ".json"
+url_parts = (base_url,year,month_url)
+url = "/".join(url_parts)
+print(url)
+
+# Setup the querystring
+querystring = {"api-key":myapikey}
+# Call request and convert the JSON data to a Python dict
+
+
+response = requests.request("GET", url, params=querystring)
+pythonData = response.json()
+# Get the response data
+
+# Print out the "hits" key to show the number of articles that were returned
+# by the NY Times Archive API
+hits = pythonData["response"]["meta"]["hits"]
+
+print(f"There were {hits} articles published in the New York Times in {month} {year}.")
+
+# Grab all the articles from the response_dict.
+# What key do you need to index?
+newList = pythonData["response"]["docs"]
+
+# Put your birthdate in this format
+# yyyy-mm-dd
+# Assign that STRING to variable called dob
+birthyear = input("Enter your birth year in YYYY format: ")
+birthmonth = input("Enter your birth month in MM format: ")
+birthday = input("Enter the day of your birth in DD format: ")
+dob = birthyear + "-" + birthmonth + "-" + birthday
+#dob = "1981-08-31"
+print(dob)
+#alternatively 3 inputs and join them using "-"
+# Create your date of birth list
+dobList = []
+# Walk through the articles list
+
+for article in newList:
+  newPubDate = article["pub_date"]
+  separate = "T"
+  strippedNewPubDate = newPubDate.split(separate, 1)[0]
+  if strippedNewPubDate == dob:
+    dobList.append(article)
+#  sep = '...'
+#stripped = text.split(sep, 1)[0]
+# Access the "pub_date" key and split that string on 'T'
+# Note that a tuple is returned by split.  
+# You only need the first part
+# If the first part of pub_date matches dob, then append to dobArticles
+
+
+# Print out the number of articles published on your birthday
+print(f"There were {len(dobList)} articles published in the New York Times on your birthday of {dob}.")
+
+import pandas as pd
+
+dobarticles_df = pd.DataFrame(dobList)
+# Print the head of the dataframe
+print(dobarticles_df.head())
+
+# Create the frontpage_df DataFrame from dobarticles_df
+
+frontpage1_df = dobarticles_df[dobarticles_df["print_page"] == "1"]
+print(frontpage1_df.shape)
+frontpage_df = frontpage1_df[frontpage1_df["print_section"] == "A"]
+
+
+
+# Display the number of articles on the front page
+frontpage_df.shape
+
+# Make a list of the print headlines from the articles on the front page.
+printHeadlines = []
+headlines_df = frontpage_df["headline"]
+print(headlines_df.iloc[0])
+# Access the appropriate column from the frontpage_df DataFrame
+
+# Use to_list() to force the `headlines` variable to be a list
+headlinesList = headlines_df.to_list()
+
+for headline in headlinesList:
+  printHeadlines.append(headline["print_headline"])
+
+# Append the print_headline string to the printHeadlines list.
+#for headline in headlinesList:
+#  printHeadlines.append(headline)
+# Print out printHeadlines
+for i in printHeadlines:
+  print(i)
+  print()
